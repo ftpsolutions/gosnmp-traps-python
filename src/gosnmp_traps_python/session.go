@@ -10,7 +10,7 @@ import (
 	"github.com/ftpsolutions/gosnmp"
 )
 
-type MultiResult struct {
+type multiResult struct {
 	OID              string
 	Type             string
 	IsNull           bool
@@ -25,8 +25,8 @@ type MultiResult struct {
 	StringValue      string
 }
 
-func BuildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (MultiResult, error) {
-	multiResult := MultiResult{
+func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (multiResult, error) {
+	multiResult := multiResult{
 		OID: oid,
 	}
 
@@ -109,22 +109,31 @@ func BuildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 	return multiResult, fmt.Errorf("Unknown type; oid=%v, type=%v, value=%v", oid, valueType, value)
 }
 
-type ReceivedTrap struct {
+type receivedTrap struct {
 	Time    time.Time
 	Addr    net.UDPAddr
-	Results []MultiResult
+	Results []multiResult
 }
 
-func handleListen(s *Session) {
+type session struct {
+	host          string
+	port          int
+	params        []*gosnmp.GoSNMP
+	trapListener  *gosnmp.TrapListener
+	quit          chan struct{}
+	startWg       sync.WaitGroup
+	stopWg        sync.WaitGroup
+	receivedTraps chan receivedTrap
+}
+
+func handleListen(s *session) {
 	s.stopWg.Add(1)
 
 	if s.trapListener == nil {
-		fmt.Println("no tl")
 		return
 	}
 
 	if s.trapListener.GetConn() != nil {
-		fmt.Println("conn")
 		return
 	}
 
@@ -138,36 +147,25 @@ func handleListen(s *Session) {
 	s.stopWg.Done()
 }
 
-type Session struct {
-	host          string
-	port          int
-	params        []*gosnmp.GoSNMP
-	trapListener  *gosnmp.TrapListener
-	quit          chan struct{}
-	startWg       sync.WaitGroup
-	stopWg        sync.WaitGroup
-	receivedTraps chan ReceivedTrap
-}
-
-func NewSession(host string, port int, params []*gosnmp.GoSNMP) *Session {
-	s := Session{
+func newSession(host string, port int, params []*gosnmp.GoSNMP) *session {
+	s := session{
 		host:          host,
 		port:          port,
 		params:        params,
-		receivedTraps: make(chan ReceivedTrap, 524288),
+		receivedTraps: make(chan receivedTrap, 524288),
 	}
 
 	return &s
 }
 
-func (s *Session) trapHandler(packet *gosnmp.SnmpPacket, addr *net.UDPAddr) {
-	receivedTrap := ReceivedTrap{
+func (s *session) trapHandler(packet *gosnmp.SnmpPacket, addr *net.UDPAddr) {
+	receivedTrap := receivedTrap{
 		Time: time.Now(),
 		Addr: *addr,
 	}
 
 	for _, v := range packet.Variables {
-		multiResult, err := BuildMultiResult(v.Name, v.Type, v.Value)
+		multiResult, err := buildMultiResult(v.Name, v.Type, v.Value)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -178,12 +176,11 @@ func (s *Session) trapHandler(packet *gosnmp.SnmpPacket, addr *net.UDPAddr) {
 	select {
 	case s.receivedTraps <- receivedTrap:
 	default:
-		err := fmt.Errorf("channel %+v full, throwing away %+v", s.receivedTraps, receivedTrap)
-		fmt.Println("error: ", err)
+		fmt.Println("error: ", fmt.Errorf("channel %+v full, throwing away %+v", s.receivedTraps, receivedTrap))
 	}
 }
 
-func (s *Session) Connect() {
+func (s *session) connect() {
 	if s.trapListener != nil {
 		if s.trapListener.GetConn() != nil {
 			return
@@ -201,8 +198,8 @@ func (s *Session) Connect() {
 	s.startWg.Wait()
 }
 
-func (s *Session) GetNoWait() ([]ReceivedTrap, error) {
-	receivedTraps := make([]ReceivedTrap, 0)
+func (s *session) getNoWait() ([]receivedTrap, error) {
+	receivedTraps := make([]receivedTrap, 0)
 
 	for {
 		select {
@@ -218,7 +215,7 @@ func (s *Session) GetNoWait() ([]ReceivedTrap, error) {
 	}
 }
 
-func (s *Session) Close() {
+func (s *session) close() {
 	if s.trapListener == nil {
 		return
 	}
