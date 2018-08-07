@@ -1,0 +1,6 @@
+pytest
+mock
+pyhamcrest
+cffi
+future==0.16.0  # needed by gosnmp_python, gossh_python and goodbc_python
+python-dateutil

@@ -120,7 +120,6 @@ type session struct {
 	port          int
 	params        []*gosnmp.GoSNMP
 	trapListener  *gosnmp.TrapListener
-	quit          chan struct{}
 	startWg       sync.WaitGroup
 	stopWg        sync.WaitGroup
 	receivedTraps chan receivedTrap
