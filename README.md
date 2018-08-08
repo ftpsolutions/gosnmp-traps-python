@@ -106,6 +106,7 @@ The example belows shows how to define the same two listeners we defined above (
 ```
 import pprint
 import time
+from Queue import Empty
 
 from gosnmp_traps_python.rpc_session import SNMPv2cParams, SNMPv3Params, create_session
 
@@ -137,7 +138,11 @@ while 1:
 
 print ''
 
-received_traps = session.get_nowait()
+try:
+    received_traps = session.get_nowait()
+except Empty as e:
+    print 'No traps received'
+    received_traps = []
 
 pprint.pprint(received_traps)
 

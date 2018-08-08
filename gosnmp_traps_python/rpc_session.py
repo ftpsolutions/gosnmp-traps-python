@@ -32,11 +32,6 @@ else:  # for all versions of PyPy and also Python3
 
 _ = object
 _ = str
-_ = SetPyPy
-_ = NewRPCSession
-_ = RPCConnect
-_ = RPCGetNoWait
-_ = RPCClose
 
 _new_session_lock = RLock()
 
