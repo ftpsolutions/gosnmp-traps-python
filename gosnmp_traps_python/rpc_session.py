@@ -91,9 +91,7 @@ _PARAMS_MAPPING = {
 
 class _Params(object):
     def __init__(self):
-        self.dict = {
-            'Timeout': None,
-        }
+        self.dict = {}
 
     def __str__(self):
         return json.dumps(self.dict)
@@ -139,9 +137,6 @@ class SNMPv3Params(_Params):
 
 
 def create_session(params_list, hostname=None, port=162, timeout=5):
-    for params in params_list:
-        params.dict.update({'Timeout': timeout})
-
     hostname = hostname if hostname is not None else '0.0.0.0'
 
     params_json = json.dumps([dict(x) for x in params_list])
