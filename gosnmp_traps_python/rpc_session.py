@@ -108,10 +108,8 @@ class _Params(object):
 
 
 class SNMPv2cParams(_Params):
-    def __init__(self, community_string, **kwargs):
-        super(SNMPv2cParams, self).__init__(
-            **kwargs
-        )
+    def __init__(self, community_string):
+        super(SNMPv2cParams, self).__init__()
 
         self.dict.update({
             'Community': community_string
@@ -120,10 +118,8 @@ class SNMPv2cParams(_Params):
 
 class SNMPv3Params(_Params):
     def __init__(self, security_username, security_level, auth_password, auth_protocol, privacy_password,
-                 privacy_protocol, context_name=None, **kwargs):
-        super(SNMPv3Params, self).__init__(
-            **kwargs
-        )
+                 privacy_protocol, context_name=None):
+        super(SNMPv3Params, self).__init__()
 
         self.dict.update({
             'SecurityUsername': security_username,
