@@ -34,8 +34,6 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 
 	case gosnmp.Null:
 		fallthrough
-	case gosnmp.UnknownType:
-		fallthrough
 	case gosnmp.NoSuchInstance:
 		multiResult.Type = "noSuchInstance"
 		multiResult.IsNoSuchInstance = true
@@ -79,6 +77,12 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 		multiResult.IntValue = int(value.(uint))
 		return multiResult, nil
 
+	case gosnmp.OpaqueFloat:
+		multiResult.Type = "float"
+		multiResult.FloatValue = float64(value.(float32))
+		return multiResult, nil
+	case gosnmp.OpaqueDouble:
+		fallthrough
 	case gosnmp.Opaque:
 		multiResult.Type = "float"
 		multiResult.FloatValue = value.(float64)
