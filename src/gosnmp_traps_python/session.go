@@ -114,9 +114,16 @@ func buildMultiResult(oid string, valueType gosnmp.Asn1BER, value interface{}) (
 }
 
 type receivedTrap struct {
-	Time    time.Time
-	Addr    net.UDPAddr
-	Results []multiResult
+	IsSNMPv1 bool
+	Time     time.Time
+	Addr     net.UDPAddr
+	Results  []multiResult
+
+	// SNMPv1 only
+	Enterprise   string
+	GenericTrap  int
+	SpecificTrap int
+	Uptime       int
 }
 
 type session struct {
@@ -163,8 +170,17 @@ func newSession(host string, port int, params []*gosnmp.GoSNMP) *session {
 
 func (s *session) trapHandler(packet *gosnmp.SnmpPacket, addr *net.UDPAddr) {
 	receivedTrap := receivedTrap{
-		Time: time.Now(),
-		Addr: *addr,
+		IsSNMPv1:     false,
+		Time:         time.Now(),
+		Addr:         *addr,
+		Enterprise:   packet.Enterprise,
+		GenericTrap:  packet.GenericTrap,
+		SpecificTrap: packet.SpecificTrap,
+		Uptime:       int(packet.Timestamp),
+	}
+
+	if packet.Version == gosnmp.Version1 {
+		receivedTrap.IsSNMPv1 = true
 	}
 
 	for _, v := range packet.Variables {

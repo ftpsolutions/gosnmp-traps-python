@@ -1,6 +1,7 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
+import datetime
 import json
 from Queue import Empty
 from collections import namedtuple
@@ -37,10 +38,17 @@ MultiResult = namedtuple('MultiResult', [
 ])
 
 ReceivedTrap = namedtuple('ReceivedTrap', [
+    'is_snmpv1',
     'timestamp',
     'source_ip',
     'source_port',
     'variables',
+
+    # SNMPv1 only
+    'enterprise',
+    'generic_trap',
+    'specific_trap',
+    'uptime',
 ])
 
 _PARSER = parser()
@@ -138,6 +146,7 @@ def handle_multi_result(multi_result):
 def handle_received_traps(received_traps_json):
     return [
         ReceivedTrap(
+            is_snmpv1=x['IsSNMPv1'],
             timestamp=_PARSER.parse(
                 x['Time']
             ),
@@ -146,5 +155,9 @@ def handle_received_traps(received_traps_json):
             variables=[
                 handle_multi_result(MultiResult(**y)) for y in x['Results']
             ],
+            enterprise=x['Enterprise'] if x['IsSNMPv1'] else None,
+            generic_trap=x['GenericTrap'] if x['IsSNMPv1'] else None,
+            specific_trap=x['SpecificTrap'] if x['IsSNMPv1'] else None,
+            uptime=datetime.timedelta(seconds=x['Uptime'] / 100.0) if x['IsSNMPv1'] else None,
         ) for x in received_traps_json
     ]
