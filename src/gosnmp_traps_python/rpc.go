@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/ftpsolutions/gosnmp"
+	"os"
+	"strconv"
 )
 
 var sessionMutex sync.Mutex
@@ -101,6 +103,31 @@ func getAuthenticationDetails(AuthenticationPassword, AuthenticationProtocol str
 	return AuthenticationPassword, actualAuthenticationProtocol
 }
 
+func getLogger(snmpProtocol string, port int) *log.Logger {
+	envDebug := os.Getenv("GOSNMP_TRAPS_PYTHON_DEBUG")
+	if len(envDebug) <= 0 {
+		log.Fatal("1")
+		return nil
+	}
+
+	debugEnabled, err := strconv.ParseBool(envDebug)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	if !debugEnabled {
+		log.Fatal("2")
+		return nil
+	}
+
+	return log.New(
+		os.Stdout,
+		fmt.Sprintf("%v:%v\t", snmpProtocol, port),
+		0,
+	)
+}
+
 func handleParamsJSON(port, timeout int, paramsJSON string) ([]*gosnmp.GoSNMP, error) {
 	handledParams := []params{}
 	paramsGoSNMP := make([]*gosnmp.GoSNMP, 0)
@@ -118,9 +145,13 @@ func handleParamsJSON(port, timeout int, paramsJSON string) ([]*gosnmp.GoSNMP, e
 		}
 
 		if len(handledParam.Community) != 0 {
+			paramGoSNMP.Logger = getLogger("SNMPv2c", port)
+
 			paramGoSNMP.Version = gosnmp.Version2c
 			paramGoSNMP.Community = handledParam.Community
 		} else if len(handledParam.SecurityLevel) != 0 {
+			paramGoSNMP.Logger = getLogger("SNMPv3", port)
+
 			paramGoSNMP.Version = gosnmp.Version3
 			paramGoSNMP.SecurityModel = gosnmp.UserSecurityModel
 
