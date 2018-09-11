@@ -106,18 +106,15 @@ func getAuthenticationDetails(AuthenticationPassword, AuthenticationProtocol str
 func getLogger(snmpProtocol string, port int) *log.Logger {
 	envDebug := os.Getenv("GOSNMP_TRAPS_PYTHON_DEBUG")
 	if len(envDebug) <= 0 {
-		log.Fatal("1")
 		return nil
 	}
 
 	debugEnabled, err := strconv.ParseBool(envDebug)
 	if err != nil {
-		log.Fatal(err)
 		return nil
 	}
 
 	if !debugEnabled {
-		log.Fatal("2")
 		return nil
 	}
 
