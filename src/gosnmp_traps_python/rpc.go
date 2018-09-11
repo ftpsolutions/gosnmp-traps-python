@@ -142,12 +142,18 @@ func handleParamsJSON(port, timeout int, paramsJSON string) ([]*gosnmp.GoSNMP, e
 		}
 
 		if len(handledParam.Community) != 0 {
-			paramGoSNMP.Logger = getLogger("SNMPv2c", port)
+			logger := getLogger("SNMPv2c", port)
+			if logger != nil {
+				paramGoSNMP.Logger = logger
+			}
 
 			paramGoSNMP.Version = gosnmp.Version2c
 			paramGoSNMP.Community = handledParam.Community
 		} else if len(handledParam.SecurityLevel) != 0 {
-			paramGoSNMP.Logger = getLogger("SNMPv3", port)
+			logger := getLogger("SNMPv3", port)
+			if logger != nil {
+				paramGoSNMP.Logger = logger
+			}
 
 			paramGoSNMP.Version = gosnmp.Version3
 			paramGoSNMP.SecurityModel = gosnmp.UserSecurityModel
