@@ -1,0 +1,5 @@
+include LICENSE
+include LICENSE_gosnmp
+include README.md
+include gosnmp_traps_python/cffi/_gosnmp_traps_python.so
+include gosnmp_traps_python/py2/gosnmp_traps_python.so
