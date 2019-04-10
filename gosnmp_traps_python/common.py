@@ -153,7 +153,7 @@ def handle_received_traps(received_traps_json):
             source_ip=x['Addr']['IP'],
             source_port=x['Addr']['Port'],
             variables=[
-                handle_multi_result(MultiResult(**y)) for y in x['Results']
+                handle_multi_result(MultiResult(**y)) for y in (x['Results'] if x['Results'] is not None else [])
             ],
             enterprise=x['Enterprise'] if x['IsSNMPv1'] else None,
             generic_trap=x['GenericTrap'] if x['IsSNMPv1'] else None,
