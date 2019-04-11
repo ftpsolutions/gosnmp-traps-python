@@ -1,0 +1,6 @@
+include LICENSE
+include LICENSE_gosnmp
+include README.md
+include build.sh
+recursive-include src/gosnmp_traps_python *
+recursive-include gosnmp_traps_python *.so

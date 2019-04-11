@@ -186,8 +186,8 @@ If we run the above code and then send some SNMP traps to this listener (in my e
                 oid=u'.1.3.6.1.4.1.9.9.43.1.1.6.1.5', 
                 oid_index=223, 
                 snmp_type=u'int', 
-                value=
-            3)
+                value=3
+            )
         ]
     )
 ]
