@@ -15,6 +15,8 @@ if [[ $GOVERSION != *"go1.13"* ]]; then
 fi
 
 export PYTHONPATH=`pwd`/src/github.com/go-python/gopy/
+# Use the default go binary path - the way to do it with newer versions of golang!
+PATH=${PATH}:~/go/bin
 
 echo "cleaning up output folder"
 rm -frv gosnmp_traps_python/*.pyc
@@ -26,32 +28,20 @@ if [[ "$1" == "clean" ]]; then
 fi
 
 if [[ "$1" != "fast" ]]; then
-    echo "getting assert"
-    go get -v -u github.com/stretchr/testify/assert
-    echo ""
-
-    echo "getting gosnmp"
-    go get -v -u github.com/ftpsolutions/gosnmp
-    echo ""
-
     echo "building gosnmp"
-    go build -x -a github.com/ftpsolutions/gosnmp
-    echo ""
-
-    echo "getting gopy"
-    go get -v -u github.com/go-python/gopy@v0.3.1
-    echo ""
-
-    echo "installing gopy"
-    go install -i github.com/go-python/gopy
+    go build -x -a  -mod readonly github.com/ftpsolutions/gosnmp
     echo ""
 
     echo "building gopy"
-    go build -x -a github.com/go-python/gopy
+    go build -x -a -mod readonly github.com/go-python/gopy
+    echo ""
+
+    echo "installing gopy"
+    go install -i -mod readonly github.com/go-python/gopy
     echo ""
 
     echo "building gosnmp_traps_python"
-    go build -x -a gosnmp_traps_python/gosnmp_traps_python_go
+    go build -x -a  -mod readonly gosnmp_traps_python/gosnmp_traps_python_go
     echo ""
 
     # Use a specific version!
