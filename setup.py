@@ -17,13 +17,15 @@ class my_build_py(build_py):
     def run(self):
         # honor the --dry-run flag
         if not self.dry_run:
-            subprocess.call(['./build.sh'])
+            return_value = subprocess.call(['./build.sh'])
+            if return_value != 0:
+                raise ValueError('build.sh returned non zero exit code')
         build_py.run(self)
 
 
 setuptools.setup(
     name="gosnmp-traps-python",
-    version="0.2.2",
+    version="0.2.3",
 
     # The project's main homepage.
     url='https://github.com/ftpsolutions/gosnmp-traps-python',
@@ -46,6 +48,9 @@ setuptools.setup(
         '': ['*.so'],
     },
     include_package_data=True,
+
+    # Force the egg to unzip
+    zip_safe=False,
 
     install_requires=[
         'cffi==1.11.5',

@@ -1,4 +1,4 @@
-package gosnmp_traps_python
+package gosnmp_traps_python_go
 
 // #cgo pkg-config: python2
 // #include <Python.h>

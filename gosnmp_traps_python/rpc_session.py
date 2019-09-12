@@ -23,13 +23,14 @@ if version < (3, 0, 0):
     from past.types.oldstr import oldstr as str
 
 if not is_pypy and version < (3, 0, 0):  # for Python2
-    from .py2.gosnmp_traps_python import SetPyPy, NewRPCSession, RPCConnect, RPCGetNoWait, RPCClose
+    from .py2.gosnmp_traps_python_go import SetPyPy, NewRPCSession, RPCConnect, RPCGetNoWait, RPCClose
 else:  # for all versions of PyPy and also Python3
-    from .cffi.gosnmp_traps_python import SetPyPy, NewRPCSession, RPCConnect, RPCGetNoWait, RPCClose
-
-    SetPyPy()
-
-    print('WARNING: PyPy or Python3 detected, will use CFFI- be prepared for very odd behaviour')
+    raise ValueError('PyPy and Python3 is not supported. Waiting for gopy CFFI support')
+#     from .cffi.gosnmp_traps_python import SetPyPy, NewRPCSession, RPCConnect, RPCGetNoWait, RPCClose
+#
+#     SetPyPy()
+#
+#     print('WARNING: PyPy or Python3 detected, will use CFFI- be prepared for very odd behaviour')
 
 _ = object
 _ = str
