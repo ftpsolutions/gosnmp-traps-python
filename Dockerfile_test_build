@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y python2.7 \
         inetutils-ping nmap traceroute netcat tcpdump \
         net-tools bmon entr git pkg-config nano vim wget \
         curl supervisor virtualenv autoconf libsnmp-dev \
-        libncurses5-dev g++ cmake libssl-dev libaio1 liblz4-1
+        libncurses5-dev g++ cmake libssl-dev libaio1 liblz4-1 snmp
 
 RUN mkdir /srv/staging
 RUN wget -O /srv/staging/go1.13.linux-amd64.tar.gz https://dl.google.com/go/go1.13.linux-amd64.tar.gz

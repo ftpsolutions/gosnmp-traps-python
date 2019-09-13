@@ -16,8 +16,8 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 #### Prerequisites
 
-* Go 1.9 or Go 1.10
-* Python 2.7+, Python 3.5+, PyPy 5.10+ or PyPy3 5.10+
+* Go 1.13
+* Python 2.7+
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
@@ -196,3 +196,13 @@ If we run the above code and then send some SNMP traps to this listener (in my e
 So to summarise, each call to `get_nowait()` will either raise `Queue.Empty` or return a list of `ReceivedTrap` objects.
 
 The SNMPVariable object is meant to feel like [easysnmp](https://github.com/kamakazikamikaze/easysnmp).
+
+## To run test container
+
+    ./test.sh
+    
+## To develop
+
+    MOUNT_WORKSPACE=1 ./test.sh bash
+    ./build.sh
+    py.test -s
