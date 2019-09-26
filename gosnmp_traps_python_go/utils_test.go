@@ -1,4 +1,4 @@
-package gosnmp_traps_python
+package gosnmp_traps_python_go
 
 import (
 	"testing"

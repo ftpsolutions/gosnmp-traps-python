@@ -5,7 +5,7 @@ out
 src/github.com
 *.pyc
 *__pycache__
-test*.py
+gosnmp_traps_python/py2
 gosnmp_traps_python.so
 _gosnmp_traps_python.so
 gosnmp_traps_python.py
@@ -14,8 +14,8 @@ prebuilt
 .cache
 .pytest_cache
 .vscode
-main.go
 build/
 dist/
 gosnmp_traps_python.egg-info/
 .DS_Store
+*VirtualEnv*
