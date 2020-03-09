@@ -8,3 +8,4 @@ cffi==1.11.5
 future==0.16.0  # needed by gosnmp_python, gossh_python and goodbc_python
 python-dateutil==2.7.5
 guppy==0.1.11
+zipp==2.2.1
