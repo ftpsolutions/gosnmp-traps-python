@@ -1,8 +1,14 @@
 ## gosnmp-traps-python
 
-The purpose of this module is to provide a Python interface to the Golang [gosnmp](https://github.com/soniah/gosnmp) module (but only for the SNMP traps side of that library and with a few tweaks).
+The purpose of this module is to provide a Python interface to the Golang [gosnmp](https://github.com/soniah/gosnmp) module (but only for
+the SNMP traps side of that library and with a few tweaks).
 
 It was made very easy with the help of the Golang [gopy](https://github.com/go-python/gopy) module.
+
+#### Versions
+
+This version (0.2.4) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
+only.
 
 #### Limitations
 
@@ -24,7 +30,7 @@ Right now I'm still working on how to put it all together as a Python module, so
 
 #### Setup (for dev)
 
-* ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-traps-python``` 
+* ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-traps-python```
 * ```pip install -r requirements-dev.txt```
 * ```./build.sh```
 * ```GODEBUG=cgocheck=0 py.test -v```
@@ -149,7 +155,8 @@ pprint.pprint(received_traps)
 session.close()
 ```
 
-If we run the above code and then send some SNMP traps to this listener (in my example, I configured a Cisco switch to export traps and ran the "conf t" command) then we'll get some output similar to the below:
+If we run the above code and then send some SNMP traps to this listener (in my example, I configured a Cisco switch to export traps and ran
+the "conf t" command) then we'll get some output similar to the below:
 
 ```
 [
@@ -192,7 +199,7 @@ If we run the above code and then send some SNMP traps to this listener (in my e
     )
 ]
 ```
- 
+
 So to summarise, each call to `get_nowait()` will either raise `Queue.Empty` or return a list of `ReceivedTrap` objects.
 
 The SNMPVariable object is meant to feel like [easysnmp](https://github.com/kamakazikamikaze/easysnmp).
@@ -200,7 +207,7 @@ The SNMPVariable object is meant to feel like [easysnmp](https://github.com/kama
 ## To run test container
 
     ./test.sh
-    
+
 ## To develop
 
     MOUNT_WORKSPACE=1 ./test.sh bash
