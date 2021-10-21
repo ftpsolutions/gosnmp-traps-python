@@ -1,227 +1,79 @@
-## gosnmp-traps-python
+# gosnmp-traps-python
 
-The purpose of this module is to provide a Python interface to the Golang [gosnmp](https://github.com/soniah/gosnmp) module (but only for
-the SNMP traps side of that library and with a few tweaks).
+This library binds [our fork](https://github.com/ftpsolutions/gosnmp) of [gosnmp](https://github.com/gosnmp/gosnmp) for use in Python3
+using [gopy](https://github.com/go-python/gopy).
 
-It was made very easy with the help of the Golang [gopy](https://github.com/go-python/gopy) module.
+## Versions
 
-#### Versions
+All versions 1.0.0 and up support Python 3 only! If you need Python 2 support, check out the following:
 
-This version (0.91) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
-only.
+- [https://github.com/ftpsolutions/gosnmp-traps-python/tree/v0.91](https://github.com/ftpsolutions/gosnmp-traps-python/tree/v0.91)
+- https://pypi.org/project/gosnmp-traps-python/0.91/
 
-#### Limitations
+## Concept
 
-* Python command needs to be prefixed with GODEBUG=cgocheck=0 (or have that in the environment)
-* I've not implemented walk (as I didn't need it for my use-case, I just use get_next with Python)
-* Seems to have some odd memory problems with PyPy (via CFFI); lots of locks and stuff to try and alleviate that
+In the early days `gopy` was fairly limited in it's ability to track object allocation across the border of Go and Python.
 
-#### How do I make use of this?
+As a result, our implementation is fairly naive- we only pass primitive types from Go to Python (nothing that comes by reference).
 
-Right now I'm still working on how to put it all together as a Python module, so here are the raw steps.
+Session are managed entirely on the Go side and identified with an integer- here are a few function signatures to demonstrate:
 
-#### Prerequisites
+- `NewRPCSession(hostname string, port, timeout int, paramsJSON string) (uint64, error)`
+- `RPCConnect(sessionID uint64) error`
+- `RPCGetNoWait(sessionID uint64) (string, error)`
+- `RPCClose(sessionID uint64)`
 
-* Go 1.13
-* Python 2.7+
-* pip
-* virtualenvwrapper
-* pkgconfig/pkg-config
+The functions that return complex data do so in a special JSON-based format- at this point `gopy` does it's magic and those functions are
+made available to Python.
 
-#### Installation (from PyPI)
+We then have `RPCSession` abstraction on the Python side that pulls things together in a class for convenience (saving you need the to keep
+track of the identifiers and handling deserialisation).
 
-* ```python -m pip install gosnmp-traps-python```
+## Weird gotchas
 
-#### Installation (for prod)
+We're building for Python3 and we use a `python-config` script for Python3 however we're using a `python.pc` file from Python2.
 
-* ```python setup.py install```
+I dunno why this has to be this way, but it's the only way I can get the C Python API GIL lock/unlock calls to be available to
+Go (`C.PyEval_SaveThread()` and `C.PyEval_RestoreThread(tState)`).
 
-#### Making a python wheel install file (for distribution)
+So if you're wondering why Python2 still comes into it here and there- that's why. Doesn't seem to cause any problems.
 
-* ```python setup.py bdist_wheel```
+## Prerequisites
 
-#### Setup (for dev)
+- MacOS
+- CPython3.8+
+- virtualenv
+    - `pip install virtualenv`
+- pkgconfig
+    - `brew install pkg-config`
+- Docker
 
-* ```mkvirtualenvwrapper -p (/path/to/pypy) gosnmp-traps-python```
-* ```pip install -r requirements-dev.txt```
-* ```./build.sh```
-* ```GODEBUG=cgocheck=0 py.test -v```
-
-#### What's worth knowing if I want to further the development?
-
-* gopy doesn't like Go interfaces; so make sure you don't have any public (exported) interfaces
-    * this includes a struct with a public property that may eventually lead to an interface
-
-#### Example Go RPCSession usage (simple session ID, calls return JSON)
-
-The only reason you'd want to use this (in Golang) is if you wanted to listen on a single port for multiple different SNMP configurations.
+## Install (from PyPI)
 
 ```
-package main
-
-import (
-	"bufio"
-	"fmt"
-	"gosnmp_traps_python"
-	"log"
-	"os"
-)
-
-func main() {
-	// we need this because without it, we'll try and manipulate the Python GIL (which may not be present)
-	gosnmp_traps_python.SetPyPy()
-
-	// define both an SNMPv2c and SNMPv3 trap configurations
-	paramsJSON := `
-	[
-		{
-			"Community": "public"
-		},
-		{
-			"SecurityLevel": "authPriv",
-			"SecurityUsername": "some_username",
-			"AuthenticationProtocol": "SHA",
-			"AuthenticationPassword": "some_auth_password",
-			"PrivacyProtocol": "AES",
-			"PrivacyPassword": "some_priv_password"
-		}
-	]
-	`
-
-	sessionID, err := gosnmp_traps_python.NewRPCSession(
-		"0.0.0.0",
-		162,
-		5,
-		paramsJSON,
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = gosnmp_traps_python.RPCConnect(sessionID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Print("Press enter to quit...")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
-
-	result, err := gosnmp_traps_python.RPCGetNoWait(sessionID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(result)
-
-	gosnmp_traps_python.RPCClose(sessionID)
-}
+python -m pip install gosnmp-traps-python
 ```
 
-#### Example Python usage (uses RPCSession underneath because of memory leaks between Go and Python with structs)
-
-The example belows shows how to define the same two listeners we defined above (using the `SNMPv2cParams` and `SNMPv3Params`)
+## Setup
 
 ```
-import pprint
-import time
-from Queue import Empty
-
-from gosnmp_traps_python.rpc_session import SNMPv2cParams, SNMPv3Params, create_session
-
-session = create_session(
-    params_list=[
-        SNMPv2cParams(
-            community_string='public',
-        ),
-        SNMPv3Params(
-            security_username='some_username',
-            security_level='authPriv',
-            auth_protocol='SHA',
-            auth_password='some_auth_password',
-            privacy_protocol='AES',
-            privacy_password='some_priv_password',
-        )
-    ]
-)
-
-session.connect()
-
-print 'CTRL + C to quit'
-
-while 1:
-    try:
-        time.sleep(1)
-    except KeyboardInterrupt:
-        break
-
-print ''
-
-try:
-    received_traps = session.get_nowait()
-except Empty as e:
-    print 'No traps received'
-    received_traps = []
-
-pprint.pprint(received_traps)
-
-session.close()
+virtualenv -p $(which python3) venv
+source venv/bin/activate
+./fix_venv.sh
+pip install -r requirements-dev.txt
 ```
 
-If we run the above code and then send some SNMP traps to this listener (in my example, I configured a Cisco switch to export traps and ran
-the "conf t" command) then we'll get some output similar to the below:
+## Build
 
 ```
-[
-    ReceivedTrap(
-        timestamp=datetime.datetime(2018, 8, 8, 9, 57, 42, 574456, tzinfo=tzoffset(None, 28800)), 
-        source_ip=u'10.10.0.2', 
-        source_port=54199, 
-        variables=[
-            SNMPVariable(
-                oid=u'.1.3.6.1.2.1.1.3', 
-                oid_index=0, 
-                snmp_type=u'int', 
-                value=206412043
-            ), 
-            SNMPVariable(
-                oid=u'.1.3.6.1.6.3.1.1.4.1', 
-                oid_index=0, 
-                snmp_type=u'string', 
-                value=u'.1.3.6.1.4.1.9.9.43.2.0.1'
-            ), 
-            SNMPVariable(
-                oid=u'.1.3.6.1.4.1.9.9.43.1.1.6.1.3', 
-                oid_index=223, 
-                snmp_type=u'int', 
-                value=1
-            ), 
-            SNMPVariable(
-                oid=u'.1.3.6.1.4.1.9.9.43.1.1.6.1.4', 
-                oid_index=223, 
-                snmp_type=u'int', 
-                value=2
-            ), 
-            SNMPVariable(
-                oid=u'.1.3.6.1.4.1.9.9.43.1.1.6.1.5', 
-                oid_index=223, 
-                snmp_type=u'int', 
-                value=3
-            )
-        ]
-    )
-]
+source venv/bin/activate
+./native_build.sh
 ```
 
-So to summarise, each call to `get_nowait()` will either raise `Queue.Empty` or return a list of `ReceivedTrap` objects.
+If you're deep in the grind and want to iterate faster, you can invoke:
 
-The SNMPVariable object is meant to feel like [easysnmp](https://github.com/kamakazikamikaze/easysnmp).
+```
+./native_build.sh fast
+```
 
-## To run test container
-
-    ./test.sh
-
-## To develop
-
-    MOUNT_WORKSPACE=1 ./test.sh bash
-    ./build.sh
-    py.test -s
+This skips the setup (assuming you've already done that).

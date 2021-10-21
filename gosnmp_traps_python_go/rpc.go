@@ -192,10 +192,8 @@ func handleParamsJSON(port, timeout int, paramsJSON string) ([]*gosnmp.GoSNMP, e
 
 // NewRPCSession creates a new Session and returns the sessionID
 func NewRPCSession(hostname string, port, timeout int, paramsJSON string) (uint64, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	paramsGoSNMP, err := handleParamsJSON(port, timeout, paramsJSON)
 	if err != nil {
@@ -219,10 +217,8 @@ func NewRPCSession(hostname string, port, timeout int, paramsJSON string) (uint6
 
 // RPCConnect calls .connect on the Session identified by the sessionID
 func RPCConnect(sessionID uint64) error {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 
@@ -251,10 +247,8 @@ func RPCConnect(sessionID uint64) error {
 
 // RPCGetNoWait calls .get on the Session identified by the sessionID
 func RPCGetNoWait(sessionID uint64) (string, error) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	var err error
 	var result string
@@ -294,10 +288,8 @@ func RPCGetNoWait(sessionID uint64) (string, error) {
 
 // RPCClose calls .close on the Session identified by the sessionID
 func RPCClose(sessionID uint64) {
-	if !GetPyPy() {
-		tState := releaseGIL()
-		defer reacquireGIL(tState)
-	}
+	tState := releaseGIL()
+	defer reacquireGIL(tState)
 
 	sessionMutex.Lock()
 	val, ok := sessions[sessionID]
