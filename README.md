@@ -7,7 +7,7 @@ It was made very easy with the help of the Golang [gopy](https://github.com/go-p
 
 #### Versions
 
-This version (0.2.4) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
+This version (0.91) is the last version to support Python 2; all versions after this have been subject to a refactor and support Python 3
 only.
 
 #### Limitations
@@ -27,6 +27,18 @@ Right now I'm still working on how to put it all together as a Python module, so
 * pip
 * virtualenvwrapper
 * pkgconfig/pkg-config
+
+#### Installation (from PyPI)
+
+* ```python -m pip install gosnmp-traps-python```
+
+#### Installation (for prod)
+
+* ```python setup.py install```
+
+#### Making a python wheel install file (for distribution)
+
+* ```python setup.py bdist_wheel```
 
 #### Setup (for dev)
 
